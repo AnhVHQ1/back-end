@@ -32,17 +32,16 @@ const {
 } = require("../controller/userCtrl");
 const { authMiddleware, isAdmin } = require("../middlewares/authMiddleware");
 const router = express.Router();
+router.post("/forgot-password-token", forgotPasswordToken);
 
 router.post("/register", createUser);
-router.post("/forgot-password-token", forgotPasswordToken);
 router.post("/cart", authMiddleware, userCart);
 router.post("/login", loginUserCtrl);
 router.post("/admin-login", loginAdmin);
 router.post("/cart/create-order", authMiddleware, createOrder);
-// router.post("/cart/applycoupon", authMiddleware, applyCoupon);
-// router.post("/getorderbyuser/:id", authMiddleware, isAdmin, getOrdersByUserId);
 
-// router.get("/getallorders", authMiddleware, isAdmin, getAllOrders);
+
+router.get("/getallorders", authMiddleware, isAdmin, getAllOrders);
 router.get("/get-orders", authMiddleware, getUserOrders);
 router.get("/wishlist", authMiddleware, getWishlist);
 router.get("/cart", authMiddleware, getUserCart);
@@ -56,15 +55,11 @@ router.delete(
   authMiddleware,
   removeProductFromCart
 );
-router.delete("/:id", deleteAUser);
-// router.delete("/empty-cart", authMiddleware, emptyCart);
 
-// router.put(
-//   "order/update-order/:id",
-//   authMiddleware,
-//   isAdmin,
-//   updateOrderStatus
-//   );
+
+
+router.delete("/:id", deleteAUser);
+
 router.put("/reset-password/:token", resetPassword);
 router.put("/password", authMiddleware, updatePassword);
 router.put(
@@ -76,5 +71,16 @@ router.put("/edit-user", authMiddleware, updateAUser);
 router.put("/save-address", authMiddleware, saveAddress);
 router.put("/block-user/:id", authMiddleware, isAdmin, blockUser);
 router.put("/unblock-user/:id", authMiddleware, isAdmin, unblockUser);
+
+// router.post("/cart/applycoupon", authMiddleware, applyCoupon);
+// router.post("/getorderbyuser/:id", authMiddleware, isAdmin, getOrdersByUserId);
+// router.delete("/empty-cart", authMiddleware, emptyCart);
+
+// router.put(
+//   "order/update-order/:id",
+//   authMiddleware,
+//   isAdmin,
+//   updateOrderStatus
+//   );
 
 module.exports = router;

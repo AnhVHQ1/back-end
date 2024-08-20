@@ -77,6 +77,10 @@ var orderScheme = new mongoose.Schema(
       type: String,
       default: "Ordered",
     },
+    shippingNote: {
+      type: String,
+      require: false,
+    },
   },
   {
     timestamps: true,

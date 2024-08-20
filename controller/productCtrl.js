@@ -23,6 +23,7 @@ const createProduct = asyncHandler(async (req, res) => {
 
 const updateProduct = asyncHandler(async (req, res) => {
   const id = req.params.id;
+  console.log("body: "+ req.body)
   try {
     if (req.body.title) {
       req.body.slug = slugify(req.body.title);
@@ -58,17 +59,23 @@ const getAProduct = asyncHandler(async (req, res) => {
 
 const getAllProduct = asyncHandler(async (req, res) => {
   try {
+    const category = req.query.category
+      ? decodeURIComponent(req.query.category)
+      : null;
+
     //Filtering
     const queryObj = { ...req.query };
-    const excludeFields = ["page", "sort", "limit", "fields"];
+    const excludeFields = ["page", "sort", "limit", "fields", "category"];
     excludeFields.forEach((el) => delete queryObj[el]);
-    console.log(queryObj);
+
+    // If category exists, add it to the query object
+    if (category) {
+      queryObj.category = category;
+    }
     let queryStr = JSON.stringify(queryObj);
     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
-    console.log(JSON.parse(queryStr));
 
     let query = Product.find(JSON.parse(queryStr));
-
     //Sorting
     if (req.query.sort) {
       const sortBy = req.query.sort.split(",").join(" ");
@@ -76,7 +83,6 @@ const getAllProduct = asyncHandler(async (req, res) => {
     } else {
       query = query.sort("-createdAt");
     }
-
     //Limiting the fields
     if (req.query.fields) {
       const fields = req.query.fields.split(",").join(" ");
@@ -94,7 +100,6 @@ const getAllProduct = asyncHandler(async (req, res) => {
       const productCount = await Product.countDocuments();
       if (skip >= productCount) throw new Error("This page does not exist.");
     }
-    console.log(page, limit, skip);
 
     const product = await query;
     res.json(product);
@@ -102,6 +107,21 @@ const getAllProduct = asyncHandler(async (req, res) => {
     throw new Error(error);
   }
 });
+
+  
+const search = asyncHandler(async (req, res) => {
+  try {
+    const key = req.params.key;
+    const searchProducts = await Product.find({
+      // $or: [{ title: { $regex: key } }],
+      $or: [{ title: { $regex: new RegExp(key, "i") } }],
+    });
+    res.json(searchProducts);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
 const addToWishlist = asyncHandler(async (req, res) => {
   const { _id } = req.user;
   const { prodId } = req.body;
@@ -196,49 +216,6 @@ const rating = asyncHandler(async (req, res) => {
   }
 });
 
-// const uploadImages = asyncHandler(async (req, res) => {
-//   try {
-//     const uploader = (path) => cloudinaryUploadImg(path, "images");
-//     const urls = [];
-//     const files = req.files;
-//     for (const file of files){
-//         const { path } = file;
-//         const newpath = await uploader(path);
-//         // console.log(newpath);
-//         urls.push(newpath);
-//         console.log(file);
-//         fs.unlink(file.path, (err) => {
-//           if (err) {
-//             console.error(`Error deleting file: ${err}`);
-//           } else {
-//             console.log(`File deleted: ${path}`);
-//           }
-//         });
-//     }
-//     const images = urls.map((file) => {
-//       return file;
-//     })
-//     res.json(images);
-
-//   } catch (error){
-//     throw new Error(error);
-//     // console.error(error);
-//     // res.status(500).json({ error: "Internal Server Error" });
-//   }
-// });
-// const deleteImages = asyncHandler(async (req, res) => {
-//   const {id} = req.params;
-//   try {
-//     const delete = cloudinaryDeleteImg(id, "images");
-//     res.json({message: "Deleted"});
-
-//   } catch (error){
-//     throw new Error(error);
-//     // console.error(error);
-//     // res.status(500).json({ error: "Internal Server Error" });
-//   }
-// });
-
 module.exports = {
   createProduct,
   getAProduct,
@@ -247,4 +224,5 @@ module.exports = {
   deleteProduct,
   addToWishlist,
   rating,
+  search,
 };

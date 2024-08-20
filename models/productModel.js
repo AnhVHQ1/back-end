@@ -11,8 +11,6 @@ var productSchema = new mongoose.Schema(
     slug: {
       type: String,
       required: true,
-      unique: true,
-      lowercase: true,
     },
     description: {
       type: String,
@@ -29,14 +27,6 @@ var productSchema = new mongoose.Schema(
     brand: {
       type: String,
       required: true,
-      // enum: [
-      //   "NaturAlmond",
-      //   "PrimeCuts",
-      //   "HarvestHarmony",
-      //   "SweetIndulgence",
-      //   "ChocoCrunch",
-      //   "CaramelCrave",
-      // ], // List of brand options
     },
     quantity: {
       type: Number,
@@ -45,7 +35,6 @@ var productSchema = new mongoose.Schema(
     sold: {
       type: Number,
       default: 0,
-      // select: false,
     },
     images: [
       {

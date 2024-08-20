@@ -412,7 +412,7 @@ const removeProductFromCart = asyncHandler(async (req, res) => {
   const { cartItemId } = req.params;
   validateMongoDbId(_id);
   try {
-    const deleteProductFromCart = await Cart.deletOne({
+    const deleteProductFromCart = await Cart.deleteOne({
       userId: _id,
       _id: cartItemId,
     });
@@ -425,7 +425,11 @@ const updateProductQuantity = asyncHandler(async (req, res) => {
   const { _id } = req.user;
   const { cartItemId, newQuantity } = req.params;
   validateMongoDbId(_id);
-  console.log(cartItemId);
+  
+  console.log("user id: "+_id);
+  console.log("cartItemId: " + cartItemId);
+  console.log("newQuantity " + newQuantity);
+
   try {
     const cartItem = await Cart.findOne({
       userId: _id,
@@ -450,6 +454,9 @@ const createOrder = asyncHandler(async (req, res) => {
       totalPriceWithShipping,
       user: _id,
     });
+    await order.populate("orderItems.product");
+    //empty cart
+    emptyCart(req, res);
     res.json({
       order,
       success: true,
@@ -470,19 +477,21 @@ const getUserOrders = asyncHandler(async (req, res) => {
   }
 });
 
+const emptyCart = asyncHandler(async (req, res) => {
+  const { _id } = req.user;
+  validateMongoDbId(_id);
+  try {
+    // const user = await User.findOne(_id);
+    // const cart = await Cart.findByIdAndRemove({ orderby: user._id });
+    // res.json(cart);
 
-
-// const emptyCart = asyncHandler(async (req, res) => {
-//   const { _id } = req.user;
-//   validateMongoDbId(_id);
-//   try {
-//     const user = await User.findOne(_id);
-//     const cart = await Cart.findOneAndRemove({ orderby: user._id });
-//     res.json(cart);
-//   } catch (error) {
-//     throw new Error(error);
-//   }
-// });
+    const deletedCarts = await Cart.deleteMany({ userId: req.user._id });
+    console.log("Cart emptied successfully");
+  } catch (error) {
+    console.error("Error deleting carts:", error);
+    throw new Error(error);
+  }
+});
 // const applyCoupon = asyncHandler(async (req, res) => {
 //   const { coupon } = req.body;
 //   const { _id } = req.user;
@@ -561,17 +570,17 @@ const getUserOrders = asyncHandler(async (req, res) => {
 //     throw new Error(error);
 //   }
 // });
-// const getAllOrders = asyncHandler(async (req, res) => {
-//   try {
-//     const allUserOrders = await Order.find()
-//       .populate("products.product")
-//       .populate("orderby")
-//       .exec();
-//     res.json(allUserOrders);
-//   } catch (error) {
-//     throw new Error(error);
-//   }
-// });
+const getAllOrders = asyncHandler(async (req, res) => {
+  try {
+    const allUserOrders = await Order.find()
+      .populate("orderItems.product")
+      .populate("user")
+      .exec();
+    res.json(allUserOrders);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
 // const getOrdersByUserId = asyncHandler(async (req, res) => {
 //   const { id } = req.user;
 //   validateMongoDbId(id);
@@ -633,7 +642,7 @@ module.exports = {
   // applyCoupon,
   // getOrders,
   // updateOrderStatus,
-  // getAllOrders,
+  getAllOrders,
   // getOrdersByUserId,
   removeProductFromCart,
   updateProductQuantity,

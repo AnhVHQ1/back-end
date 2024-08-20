@@ -9,3 +9,10 @@ router.delete('/:id', authMiddleware, isAdmin, deleteBrand)
 router.get("/:id", getBrand)
 router.get("/", getAllBrand)
 module.exports = router;
+
+
+
+
+
+
+
